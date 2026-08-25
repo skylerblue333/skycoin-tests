@@ -66,8 +66,9 @@ export function validateResponseContract(snapshot: ResponseSnapshot, spec: Contr
 
   const headers = normalizeHeaders(snapshot.headers);
   for (const required of spec.requiredHeaders ?? []) {
-    if (!hasOwn(headers, required.trim().toLowerCase())) {
-      failures.push({ code: 'header', message: `missing required header: ${required.trim().toLowerCase()}` });
+    const normalized = required.trim().toLowerCase();
+    if (!hasOwn(headers, normalized)) {
+      failures.push({ code: 'header', message: `missing required header: ${normalized}` });
     }
   }
 
@@ -77,9 +78,8 @@ export function validateResponseContract(snapshot: ResponseSnapshot, spec: Contr
       failures.push({ code: 'body_type', message: 'response body must be a JSON object' });
     } else {
       for (const key of requiredKeys) {
-        const normalized = key.trim();
-        if (!hasOwn(snapshot.body, normalized)) {
-          failures.push({ code: 'json_key', message: `missing required JSON key: ${normalized}` });
+        if (!hasOwn(snapshot.body, key)) {
+          failures.push({ code: 'json_key', message: `missing required JSON key: ${key}` });
         }
       }
     }

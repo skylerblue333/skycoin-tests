@@ -1,44 +1,60 @@
-<!-- PORTFOLIO PROJECT PROFILE: maintained by the repository owner -->
+# Sky HTTP Contract Assertions
 
-## Project profile and code-audit snapshot
+Sky HTTP Contract Assertions is a small dependency-free TypeScript library for validating **captured HTTP response snapshots** against explicit status, header, and JSON-key contracts.
 
-**What this is:** **skycoin-tests** is a public repository described as: “Testing and QA #SkyCoin4444 #AI #Blockchain #DevOps #Innovation” Its dominant language signals are **TypeScript (8 files)**.
+## Status
 
-**Why it has value:** Its value is best understood through the implementation evidence currently present in the repository: **27 tracked files** were observed in the shallow audit, with the source structure and existing documentation providing the project’s specific context. This README does not treat a prototype, experiment, or archive as a production system without supporting evidence.
+**Engineering beta.** This library does not make network requests or run browser/end-to-end suites. It validates response data supplied by a caller, making it useful as a reusable contract boundary inside integration tests and CI adapters.
 
-**Implementation evidence:** No test-related file was detected by filename heuristics.; 1 dependency or package manifest(s) detected; 3 build/CI/infrastructure signal(s) detected; and 3 documentation or governance file(s) detected. Test filenames observed include none detected. Dependency or package files include `package.json`. Build, CI, or infrastructure signals include `Dockerfile`, `docker-compose.yml`, `.github/workflows/ci.yml`.
+The historical repository contained copied AI/security scaffolding and scripts that printed `Tests passing` without running tests. Those unrelated and unsupported surfaces are removed from the active product branch.
 
-**Current status:** The repository is tracked on the `main` branch. The existing source tree, configuration, tests, workflows, and documentation remain authoritative for supported behavior and maturity. A code audit is not a production-readiness certification, and the presence of a test or workflow file does not establish that all checks pass.
+## Supported assertions
 
-**Relationship to the wider portfolio:** This repository is one focused component of the broader Skyler Blue Spillers portfolio across AI, software engineering, cloud and DevOps, cybersecurity, blockchain, finance, education, social systems, and creative work. It may provide a service boundary, implementation pattern, experiment, archive, or reusable idea for related repositories. Treat repositories as technical dependencies only where documented interfaces and verified project requirements support that relationship.
+- one or more allowed HTTP status codes;
+- required response headers using case-insensitive header names;
+- required top-level JSON object keys;
+- deterministic structured failure reports;
+- bounded contract rule counts and name/key lengths;
+- strict HTTP status validation.
 
-**Quality and security note:** No obvious secret-like pattern was detected by the limited static scan; this is not a substitute for a security audit. No TODO/FIXME marker was detected in the scanned text files.
+## Example
 
----
+```ts
+import { validateResponseContract } from './src';
 
-# Skycoin Tests
+const report = validateResponseContract(
+  {
+    status: 200,
+    headers: { 'content-type': 'application/json' },
+    body: { status: 'ok' },
+  },
+  {
+    allowedStatuses: [200],
+    requiredHeaders: ['content-type'],
+    requiredJsonKeys: ['status'],
+  },
+);
+```
 
-![GitHub stars](https://img.shields.io/github/stars/skylerblue333/skycoin-tests?style=flat-square)
-![GitHub license](https://img.shields.io/github/license/skylerblue333/skycoin-tests?style=flat-square)
+`report.ok` is `false` when a response violates the supplied contract; mismatches are returned as structured failures rather than being hidden behind placeholder success output.
 
-## 🌟 Overview
-**skycoin-tests** is a professional-grade project within the **SkyCoin4444** ecosystem. It focuses on delivering high-value solutions in the domain of **TypeScript**.
+## Verify
 
-## 🚀 Key Features
-- **Scalable Architecture**: Designed for enterprise-level growth and performance.
-- **Modern Standards**: Implements best practices for clean code and maintainability.
-- **Robust Integration**: Built to work seamlessly within modern cloud-native environments.
+```bash
+npm install
+npm run build
+npm test
+npm audit --omit=dev --audit-level=high
+```
 
-## 🛠️ Technology Stack
-- **Primary Domain**: TypeScript
-- **Ecosystem**: SkyCoin4444 Digital Platform
+## Boundaries
 
-## 📂 Structure
-The project is organized into a modular structure to ensure clarity and ease of development.
+This package does not perform HTTP requests, retries, authentication, TLS validation, browser automation, load testing, fuzzing, schema generation, OpenAPI conformance, persistence, test orchestration, or production monitoring. A caller is responsible for capturing the response snapshot through an appropriate test/runtime client.
 
-## 👨‍💻 Author
-**Skyler Blue Spillers**
-*Professional Chess Player & Software Engineer*
+## SKYCOIN4444 integration
 
----
-*Powered by SkyCoin4444*
+Gateway, health, API, and service products can reuse this library to assert stable response contracts in their own test suites without coupling those tests to a specific HTTP client.
+
+## License
+
+See `LICENSE`.

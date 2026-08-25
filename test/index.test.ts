@@ -11,6 +11,22 @@ test('accepts matching status headers and JSON keys case-insensitively for heade
   assert.deepEqual(report, { ok: true, failures: [] });
 });
 
+test('preserves exact whitespace in required JSON property names', () => {
+  assert.equal(
+    validateResponseContract(
+      { status: 200, body: { ' token ': 'value' } },
+      { allowedStatuses: [200], requiredJsonKeys: [' token '] },
+    ).ok,
+    true,
+  );
+  const mismatch = validateResponseContract(
+    { status: 200, body: { token: 'value' } },
+    { allowedStatuses: [200], requiredJsonKeys: [' token '] },
+  );
+  assert.equal(mismatch.ok, false);
+  assert.equal(mismatch.failures[0].message, 'missing required JSON key:  token ');
+});
+
 test('reports deterministic failures instead of throwing for contract mismatches', () => {
   const report = validateResponseContract(
     { status: 503, headers: {}, body: { status: 'down' } },
@@ -35,5 +51,9 @@ test('rejects malformed status and rule definitions', () => {
   assert.throws(
     () => validateResponseContract({ status: 200 }, { allowedStatuses: [200], requiredHeaders: ['   '] }),
     /header names/,
+  );
+  assert.throws(
+    () => validateResponseContract({ status: 200 }, { allowedStatuses: [200], requiredJsonKeys: ['   '] }),
+    /JSON keys/,
   );
 });
